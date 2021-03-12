@@ -128,7 +128,7 @@
 					</includes>
 					<jdkVersion>${java.version}</jdkVersion>
 					<processTypes>
-						<web>java -Xmx512m -jar ${project.build.directory}/${project.build.finalName}.jar</web>
+						<web>java $JAVA_OPTS -Xmx512m -jar ${project.build.directory}/${project.build.finalName}.jar</web>
 					</processTypes>
 				</configuration>
 			</plugin>
