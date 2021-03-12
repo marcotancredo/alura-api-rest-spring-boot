@@ -5,8 +5,10 @@ import br.com.alura.forum.controller.dto.TopicoDto;
 import br.com.alura.forum.controller.form.AtualizacaoTopicoForm;
 import br.com.alura.forum.controller.form.TopicoForm;
 import br.com.alura.forum.model.Topico;
+import br.com.alura.forum.model.Usuario;
 import br.com.alura.forum.repository.CursoRepository;
 import br.com.alura.forum.repository.TopicoRepository;
+import br.com.alura.forum.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -15,6 +17,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -29,8 +33,12 @@ public class TopicosController {
 
     @Autowired
     private TopicoRepository topicoRepository;
+
     @Autowired
     private CursoRepository cursoRepository;
+
+    @Autowired
+    private UsuarioRepository usuarioRepository;
 
     @GetMapping
     @Cacheable(value = "listaDeTopicos")
@@ -52,6 +60,23 @@ public class TopicosController {
     public ResponseEntity<TopicoDto> cadastrar(@RequestBody @Valid TopicoForm form, UriComponentsBuilder uriBuilder){
 
         Topico topico = form.converter(cursoRepository);
+
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        String nome;
+
+        if (principal instanceof UserDetails) {
+            nome = ((UserDetails)principal).getUsername();
+        } else {
+            nome = principal.toString();
+        }
+
+        Optional<Usuario> usuario = usuarioRepository.findByEmail(nome);
+
+        if (usuario.isPresent()){
+            topico.setAutor(usuario.get());
+        }
+
         topicoRepository.save(topico);
 
         URI uri = uriBuilder.path("/topicos/{id}").buildAndExpand(topico.getId()).toUri();
