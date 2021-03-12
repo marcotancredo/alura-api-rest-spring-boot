@@ -1,1 +1,1 @@
-web: java -Xmx512m -jar target/app.jar --server.port=$PORT
+web: java $JAVA_OPTS -Xmx512m -jar target/app.jar --server.port=$PORT $JAVA_OPTS
